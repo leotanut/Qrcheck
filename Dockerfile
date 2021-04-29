@@ -12,4 +12,4 @@ RUN adduser -S -D -H -h /app appuser
 USER appuser
 COPY --from=builder /build/ /app/
 WORKDIR /app
-ENTRYPOINT go build  && ./webapp_check-in
+ENTRYPOINT ./webapp_check-in

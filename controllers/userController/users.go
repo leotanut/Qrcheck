@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"time"
 	"webapp-check-in/models"
-
 	"github.com/gin-gonic/gin"
 )
 

@@ -1,8 +1,11 @@
 package controller
 
 import (
+	"fmt"
+	"net/http"
 	"webapp-check-in/models"
 	"webapp-check-in/service"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,29 +14,26 @@ type LoginController interface {
 	Login(ctx *gin.Context) string
 }
 
-type loginController struct {
-	loginService service.LoginService
-	jWtService   service.JWTService
-}
-
-func LoginHandler(loginService service.LoginService,
-	jWtService service.JWTService) LoginController {
-	return &loginController{
-		loginService: loginService,
-		jWtService:   jWtService,
-	}
-}
-
-func (controller *loginController) Login(ctx *gin.Context) string {
+func Login(ctx *gin.Context) {
+	var jwtService service.JWTService = service.JWTAuthService()
 	var credential models.LoginRequest
-	err := ctx.ShouldBind(&credential)
+	if err := ctx.ShouldBindJSON(&credential); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	//fmt.Println(credential)
+	/*err := ctx.ShouldBind(&credential)
 	if err != nil {
-		return "no data found"
-	}
-	isUserAuthenticated := controller.loginService.LoginUser(credential.Email, credential.Password)
-	if isUserAuthenticated {
-		return controller.jWtService.GenerateToken("2", true)
 
+	}*/
+
+	data, isUserAuthenticated := service.LoginUser(credential.Email, credential.Password)
+	fmt.Println(data)
+	//fmt.Println(isUserAuthenticated)
+	if isUserAuthenticated {
+		ctx.JSON(http.StatusOK, gin.H{"token": jwtService.GenerateToken(string(data.ID), true)})
+	} else {
+		ctx.JSON(http.StatusBadRequest, gin.H{"data": "Wrong username or password "})
 	}
-	return ""
+
 }

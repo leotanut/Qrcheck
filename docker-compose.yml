@@ -1,42 +1,45 @@
 version: '3'
 services:
   app:
-    container_name: webapp_check-in
-    build: 
-      context: .
-      dockerfile: Dockerfile
+    image: qr:v1
+    container_name: qr
     ports: 
-      - 3000:8080 
+      - 8080:8080 
     restart: on-failure
     depends_on:
-      - webapp_check-in-mysql          
+      - mysql          
     volumes:
       - .:/webapp_check-in
     environment:
       - 'DB_PORT=3306'
-      - 'DB_HOST=webapp_check-in-mysql'  
+      - 'DB_HOST=mysql'
+      - 'DB_LOGIN=root'
+      - 'DB_PASS=root'
 
-  webapp_check-in-mysql:
-    image: mysql:5.7
-    container_name: webapp_check-in_db_mysql
+  mysql:
+    image: mysql:5.7.22
+    container_name: mysql
     ports: 
       - 3306:3306
     environment: 
-        MYSQL_ROOT_PASSWORD: root
-        MYSQL_USER: root
-        MYSQL_PASSWORD: root
-        MYSQL_DATABASE: web-app_check-in
-  
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: phpmyadmin_container
-    depends_on:
-      - webapp_check-in-mysql
-    environment:
-      - PMA_HOST=webapp_check-in-mysql # Note the "fullstack-mysql". Must be the name of the what you used as the mysql service.
-      - PMA_PORT=3306
-    ports:
-      - 9090:80
-    restart: always
-                 
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+      MYSQL_DATABASE: web-app_check-in
+    volumes:
+      #- "/c/mysql-data:/var/lib/mysql"
+      - ./mysqldata:/var/lib/mysql
 
+  pma:
+        image: phpmyadmin/phpmyadmin
+        depends_on:
+          - mysql
+        ports:
+          - 5003:80
+        environment:
+          - 'PMA_HOST=mysql'
+          - 'PMA_PORT=3306'
+        container_name: myadmin
+
+volumes:
+  mysqldata:      
